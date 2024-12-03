@@ -1,0 +1,19 @@
+from flask import Flask, request, jsonify
+import openai
+
+app = Flask(__name__)
+
+@app.route('/process_prompt', methods=['POST'])
+def process_prompt():
+    data = request.json
+    prompt = data['prompt']
+    # Call the OpenAI API
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    # Send back response
+    return jsonify(response.choices[0].message['content'])
+
+if __name__ == '__main__':
+    app.run(port=5000)
