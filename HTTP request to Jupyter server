@@ -1,0 +1,11 @@
+async function sendPromptToServer(prompt) {
+    const response = await fetch('http://your-jupyter-server-ip:5000/process_prompt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt: prompt })
+    });
+    const data = await response.json();
+    return data; // This is the response from OpenAI via the Jupyter server
+}
