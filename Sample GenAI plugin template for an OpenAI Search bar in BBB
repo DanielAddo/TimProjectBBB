@@ -1,0 +1,80 @@
+import React, { useState } from 'react';
+
+const SearchPlugin = () => {
+    const [isOpen, setIsOpen] = useState(false);      // Controls visibility of search bar
+    const [prompt, setPrompt] = useState('');         // Stores user input for the prompt
+    const [response, setResponse] = useState('');     // Stores the response from the server
+    const [isLoading, setIsLoading] = useState(false); // Loading state for server call
+
+    // Toggle the visibility of the search bar
+    const toggleSearchBar = () => {
+        setIsOpen(!isOpen);
+        setResponse('');  // Clear response when reopening
+    };
+
+    // Handle prompt submission and send it to the Jupyter server
+    const handlePromptSubmit = async () => {
+        if (!prompt) return;  // Prevent empty submissions
+
+        setIsLoading(true); // Show loading spinner
+        try {
+            const res = await fetch('http://your-jupyter-server-ip:5000/process_prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: prompt }),
+            });
+
+            if (!res.ok) {
+                throw new Error('Error communicating with the server');
+            }
+
+            const data = await res.json();
+            setResponse(data); // Set response from server
+        } catch (error) {
+            setResponse("Failed to fetch response. Please try again.");
+            console.error("Error:", error);
+        } finally {
+            setIsLoading(false); // Remove loading spinner
+        }
+    };
+
+    return (
+        <div>
+            {/* Button to open the search bar */}
+            <button onClick={toggleSearchBar} style={{ padding: '10px 20px', fontSize: '16px' }}>
+                {isOpen ? 'Close Search' : 'Open Search'}
+            </button>
+
+            {/* Conditionally render search bar and submit button */}
+            {isOpen && (
+                <div style={{ marginTop: '20px' }}>
+                    <input
+                        type="text"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="Enter your prompt..."
+                        style={{ padding: '10px', fontSize: '16px', width: '300px' }}
+                    />
+                    <button onClick={handlePromptSubmit} style={{ padding: '10px 20px', marginLeft: '10px', fontSize: '16px' }}>
+                        Submit
+                    </button>
+
+                    {/* Show loading spinner or server response */}
+                    {isLoading ? (
+                        <p>Loading...</p>
+                    ) : (
+                        response && (
+                            <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
+                                <strong>Response:</strong> {response}
+                            </div>
+                        )
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SearchPlugin;
